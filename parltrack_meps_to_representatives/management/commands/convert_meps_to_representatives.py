@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.template.defaultfilters import slugify
 from parltrack_meps.models import MEP, CommitteeRole, DelegationRole, GroupMEP, OrganizationMEP, CountryMEP
-from representatives.models import Mandate, Representative
+from representatives.models import Mandate, Representative, Address, Phone, Country
 
 class Command(BaseCommand):
     args = '<poll_id poll_id ...>'
@@ -33,7 +33,7 @@ class Command(BaseCommand):
                     slug=slugify(mep.full_name if mep.full_name else mep.first_name + " " + mep.last_name),
                 )
 
-            sys.stdout.write("\n") 
+            sys.stdout.write("\n")
 
             Mandate.objects.all().delete()
 
@@ -117,4 +117,91 @@ class Command(BaseCommand):
                     short_id=country.country.code,
                     representative=Representative.objects.get(remote_id=country.mep.ep_id),
                 )
+            sys.stdout.write("\n")
+
+            # NOT django-parltrack-meps country model
+            Country.objects.all().delete()
+
+            Address.objects.all().delete()
+            Phone.objects.all().delete()
+
+            belgium = Country.objects.create(name="Belgium", code="BE")
+            france = Country.objects.create(name="France", code="FR")
+
+            total = 6 * MEP.objects.count()
+            for number, mep in enumerate(MEP.objects.all(), 1):
+                number *= 6
+                sys.stdout.write("address from meps %s/%s\r" % (number - 5, total))
+                sys.stdout.flush()
+                if not mep.bxl_building is None:
+                    bxl_address = Address.objects.create(
+                        representative=Representative.objects.get(remote_id=mep.ep_id),
+                        country=belgium,
+                        city="Brussels",
+                        floor=mep.bxl_floor,
+                        office_number=mep.bxl_office_number,
+                        street='rue Wiertz',
+                        number='60',
+                        postcode='1047',
+                        kind="official",
+                        name="Brussels European Parliament"
+                    )
+
+                    sys.stdout.write("address from meps %s/%s\r" % (number - 4, total))
+                    sys.stdout.flush()
+
+                    Phone.objects.create(
+                        representative=Representative.objects.get(remote_id=mep.ep_id),
+                        address=bxl_address,
+                        kind="office phone",
+                        number=mep.bxl_phone1,
+                    )
+
+                    sys.stdout.write("address from meps %s/%s\r" % (number - 3, total))
+                    sys.stdout.flush()
+
+                    Phone.objects.create(
+                        representative=Representative.objects.get(remote_id=mep.ep_id),
+                        address=bxl_address,
+                        kind="office fax",
+                        number=mep.bxl_phone2,
+                    )
+
+                sys.stdout.write("address from meps %s/%s\r" % (number - 2, total))
+                sys.stdout.flush()
+
+                if not mep.stg_building is None:
+                    stg_address = Address.objects.create(
+                        representative=Representative.objects.get(remote_id=mep.ep_id),
+                        country=france,
+                        city="Strasbourg",
+                        floor=mep.stg_floor,
+                        office_number=mep.stg_office_number,
+                        street=u'avenue du Pr\xe9sident Robert Schuman - CS 91024',
+                        number='1',
+                        postcode='67070',
+                        kind="official",
+                        name="Strasbourg European Parliament"
+                    )
+
+                    sys.stdout.write("address from meps %s/%s\r" % (number - 1, total))
+                    sys.stdout.flush()
+
+                    Phone.objects.create(
+                        representative=Representative.objects.get(remote_id=mep.ep_id),
+                        address=stg_address,
+                        kind="office phone",
+                        number=mep.stg_phone1,
+                    )
+
+                    sys.stdout.write("address from meps %s/%s\r" % (number, total))
+                    sys.stdout.flush()
+
+                    Phone.objects.create(
+                        representative=Representative.objects.get(remote_id=mep.ep_id),
+                        address=stg_address,
+                        kind="office fax",
+                        number=mep.stg_phone2,
+                    )
+
             sys.stdout.write("\n")
