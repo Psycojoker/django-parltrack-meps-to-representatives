@@ -1,8 +1,8 @@
 import sys
 from django.core.management.base import BaseCommand
-from django.db import transaction
 from django.template.defaultfilters import slugify
 from parltrack_meps.models import MEP, CommitteeRole, DelegationRole, GroupMEP, OrganizationMEP, CountryMEP
+from django.db import connection, transaction
 from representatives.models import Mandate, Representative, Address, Phone, Country
 
 class Command(BaseCommand):
@@ -11,13 +11,17 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         with transaction.commit_on_success():
-            Representative.objects.all().delete()
+            # combine stupid orm with lame sqlite: you can't delete more than
+            # 999 rows at a time
+            cursor = connection.cursor()
+            cursor.execute("DELETE FROM %s" % Representative._meta.db_table)
 
             gender_convertion_dict = {
                 u"F": 1,
                 u"M": 2
             }
             total = MEP.objects.count()
+
             for number, mep in enumerate(MEP.objects.all(), 1):
                 sys.stdout.write("representatives %s/%s\r" % (number, total))
                 sys.stdout.flush()
@@ -120,10 +124,10 @@ class Command(BaseCommand):
             sys.stdout.write("\n")
 
             # NOT django-parltrack-meps country model
-            Country.objects.all().delete()
+            cursor.execute("DELETE FROM %s" % Country._meta.db_table)
 
-            Address.objects.all().delete()
-            Phone.objects.all().delete()
+            cursor.execute("DELETE FROM %s" % Address._meta.db_table)
+            cursor.execute("DELETE FROM %s" % Phone._meta.db_table)
 
             belgium = Country.objects.create(name="Belgium", code="BE")
             france = Country.objects.create(name="France", code="FR")
