@@ -1,9 +1,10 @@
 import sys
 from django.core.management.base import BaseCommand
-from django.template.defaultfilters import slugify
-from parltrack_meps.models import MEP, CommitteeRole, DelegationRole, GroupMEP, OrganizationMEP, CountryMEP
 from django.db import connection, transaction
+from django.template.defaultfilters import slugify
+from parltrack_meps.models import MEP, CommitteeRole, DelegationRole, GroupMEP, OrganizationMEP, CountryMEP, Email, WebSite
 from representatives.models import Mandate, Representative, Address, Phone, Country
+from representatives.models import Email as RepresentativeEmail, WebSite as RepresentativeWebsite
 
 class Command(BaseCommand):
     args = '<poll_id poll_id ...>'
@@ -120,6 +121,31 @@ class Command(BaseCommand):
                     active=True,
                     short_id=country.country.code,
                     representative=Representative.objects.get(remote_id=country.mep.ep_id),
+                )
+            sys.stdout.write("\n")
+
+            RepresentativeEmail.objects.all().delete()
+
+            total = Email.objects.count()
+            for number, email in enumerate(Email.objects.all(), 1):
+                sys.stdout.write("emails %s/%s\r" % (number, total))
+                sys.stdout.flush()
+                RepresentativeEmail.objects.create(
+                    email=email.email,
+                    kind="official" if "@europarl.europa.eu" in email.email else "other",
+                    representative=Representative.objects.get(remote_id=email.mep.ep_id),
+                )
+            sys.stdout.write("\n")
+
+            RepresentativeWebsite.objects.all().delete()
+
+            total = WebSite.objects.count()
+            for number, website in enumerate(WebSite.objects.all(), 1):
+                sys.stdout.write("websites %s/%s\r" % (number, total))
+                sys.stdout.flush()
+                RepresentativeWebsite.objects.create(
+                    url=website.url,
+                    representative=Representative.objects.get(remote_id=website.mep.ep_id),
                 )
             sys.stdout.write("\n")
 
