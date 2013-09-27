@@ -180,22 +180,24 @@ class Command(BaseCommand):
                     sys.stdout.write("address from meps %s/%s\r" % (number - 4, total))
                     sys.stdout.flush()
 
-                    Phone.objects.create(
-                        representative=Representative.objects.get(remote_id=mep.ep_id),
-                        address=bxl_address,
-                        kind="office phone",
-                        number=mep.bxl_phone1,
-                    )
+                    if mep.bxl_phone1:
+                        Phone.objects.create(
+                            representative=Representative.objects.get(remote_id=mep.ep_id),
+                            address=bxl_address,
+                            kind="office phone",
+                            number=mep.bxl_phone1,
+                        )
 
                     sys.stdout.write("address from meps %s/%s\r" % (number - 3, total))
                     sys.stdout.flush()
 
-                    Phone.objects.create(
-                        representative=Representative.objects.get(remote_id=mep.ep_id),
-                        address=bxl_address,
-                        kind="office fax",
-                        number=mep.bxl_phone2,
-                    )
+                    if mep.bxl_phone2:
+                        Phone.objects.create(
+                            representative=Representative.objects.get(remote_id=mep.ep_id),
+                            address=bxl_address,
+                            kind="office fax",
+                            number=mep.bxl_phone2,
+                        )
 
                 sys.stdout.write("address from meps %s/%s\r" % (number - 2, total))
                 sys.stdout.flush()
@@ -217,21 +219,23 @@ class Command(BaseCommand):
                     sys.stdout.write("address from meps %s/%s\r" % (number - 1, total))
                     sys.stdout.flush()
 
-                    Phone.objects.create(
-                        representative=Representative.objects.get(remote_id=mep.ep_id),
-                        address=stg_address,
-                        kind="office phone",
-                        number=mep.stg_phone1,
-                    )
+                    if mep.stg_phone1:
+                        Phone.objects.create(
+                            representative=Representative.objects.get(remote_id=mep.ep_id),
+                            address=stg_address,
+                            kind="office phone",
+                            number=mep.stg_phone1,
+                        )
 
                     sys.stdout.write("address from meps %s/%s\r" % (number, total))
                     sys.stdout.flush()
 
-                    Phone.objects.create(
-                        representative=Representative.objects.get(remote_id=mep.ep_id),
-                        address=stg_address,
-                        kind="office fax",
-                        number=mep.stg_phone2,
-                    )
+                    if mep.stg_phone2:
+                        Phone.objects.create(
+                            representative=Representative.objects.get(remote_id=mep.ep_id),
+                            address=stg_address,
+                            kind="office fax",
+                            number=mep.stg_phone2,
+                        )
 
             sys.stdout.write("\n")
